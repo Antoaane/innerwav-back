@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('project_id')->unique();
-            $table->string('user_id');
             $table->string('name');
+            $table->date('date');
             $table->string('project_type');
             $table->string('file_type');
-            $table->string('support');
-            $table->string('deadline');
-            $table->text('description')->nullable();
+            $table->date('deadline');
+            $table->string('status');
+            $table->string('init_folder_path');
+            $table->foreignId('user_id')->constrained(); // Clé étrangère faisant référence à users.id
             $table->timestamps();
-
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('projects');
+        Schema::dropIfExists('orders');
     }
 };
