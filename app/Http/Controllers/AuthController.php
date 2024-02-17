@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -26,7 +27,7 @@ class AuthController extends Controller
 
         // Créer un nouvel utilisateur et hacher le mot de passe
         $user = User::create([
-            'user_id' => bin2hex(random_bytes(20)),
+            'user_id' => Str::uuid(),
             'artist_name' => $validatedData['artist_name'],
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],

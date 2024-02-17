@@ -9,7 +9,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'date', 'project_type', 'file_type', 'deadline', 'status', 'init_folder_path', 'user_id'];
+    protected $fillable = ['name', 'date', 'project_type', 'file_type', 'support', 'deadline', 'status', 'user_id', 'order_id'];
 
     // Relation : Une commande appartient à un utilisateur
     public function user()

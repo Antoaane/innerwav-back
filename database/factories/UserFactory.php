@@ -18,7 +18,7 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'password' => bcrypt('password'),
-            'user_id' => Str::random(10),
+            'user_id' => Str::uuid(),
         ];
     }
 }

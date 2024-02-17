@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -28,9 +29,11 @@ Route::get('/test', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/safe-test', function (Request $request) {
         return response()->json(['message' => 'Ceci est une réponse de test pour les utilisateurs authentifiés']);
     });
+
+    Route::post('/order/start', [OrderController::class, 'start']);
 });

@@ -18,7 +18,9 @@ return new class extends Migration
             $table->text('seller_message')->nullable();
             $table->string('status');
             $table->string('folder_path');
-            $table->foreignId('order_id')->constrained(); // Clé étrangère faisant référence à orders.id
+            $table->uuid('order_id');
+            $table->foreign('order_id')->references('order_id')->on('orders'); // Clé étrangère faisant référence à orders.id
+            $table->uuid('feedback_id')->unique();
             $table->timestamps();
         });
     }

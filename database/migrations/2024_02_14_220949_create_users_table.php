@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('password');
-            $table->string('user_id')->unique(); // Assumant que c'est une chaîne unique par utilisateur
+            $table->uuid('user_id')->unique();
             $table->timestamps();
         });
     }
