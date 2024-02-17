@@ -27,4 +27,46 @@ class OrderController extends Controller
 
         return response()->json(['order' => $order->order_id, 'user' => $order->user_id], 201);
     }
+
+    /**
+     * Update the order at each QCM step.
+     */
+
+    public function update(Request $request, $orderId)
+    {
+        $fieldsToUpdate = $request->input('fieldsToUpdate', []);
+
+        $validationRules = [
+            'name' => 'required|string|max:255',
+            'project_type' => 'required|in:titre,ep,album',
+            'file_type' => 'required|in:stereo,stems,mixed',
+            'support' => 'required|in:str,strcd',
+        ];
+
+        $fieldsToValidate = array_intersect_key($validationRules, array_flip($fieldsToUpdate));
+
+        $validatedData = $request->validate($fieldsToValidate);
+
+        $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $order->update($validatedData);
+
+        return response()->json(['message' => 'Order updated successfully', 'order' => $order]);
+    }
+
+    /**
+     * Complete the QCM and define 'status' and 'deadline'.
+     */
+    public function complete(Request $request, $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $order->status = 2;
+        $order->deadline = $request->deadline;
+        $order->date = now(); // Set the 'date' when QCM is completed
+
+        $order->save();
+
+        return response()->json(['message' => 'Order completed successfully', 'order' => $order]);
+    }
 }

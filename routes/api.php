@@ -36,4 +36,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/order/start', [OrderController::class, 'start']);
+    Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
+    Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
 });
