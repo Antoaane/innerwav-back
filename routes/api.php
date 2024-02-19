@@ -3,7 +3,6 @@
 use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\AuthController;
 
 /*
@@ -37,5 +36,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/order/start', [OrderController::class, 'start']);
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
+    Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
     Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
 });

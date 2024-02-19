@@ -38,7 +38,7 @@ class OrderController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
-            'project_type' => 'required|in:titre,ep,album',
+            'project_type' => 'required|in:single,ep,album',
             'file_type' => 'required|in:stereo,stems,mixed',
             'support' => 'required|in:str,strcd',
         ];
@@ -52,6 +52,28 @@ class OrderController extends Controller
         $order->update($validatedData);
 
         return response()->json(['message' => 'Order updated successfully', 'order' => $order]);
+    }
+
+    public function upload(Request $request, $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $client = $request->user()->email;
+        $project = $order->project_name;
+
+        // return response()->json(['message' => $request->file('lefichier')]);
+
+        $file = $request->file('lefichier');
+
+        $fileName = 'musique-1';
+
+        // return response()->json(['message' => $fileName]);
+        $path = $file->storeAs('public/uploads', $fileName . '.' . $file->getClientOriginalExtension());
+
+        // $order->file = $fileName;
+        // $order->save();
+
+        return response()->json(['message' => 'File uploaded successfully', 'path' => $path]);
     }
 
     /**
