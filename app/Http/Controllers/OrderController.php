@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -11,6 +12,7 @@ class OrderController extends Controller
     /**
      * Initialize a new order when the QCM starts.
      */
+
     public function start(Request $request)
     {
         $order = new Order;
@@ -58,22 +60,76 @@ class OrderController extends Controller
     {
         $order = Order::where('order_id', $orderId)->firstOrFail();
 
-        $client = $request->user()->email;
-        $project = $order->project_name;
+        if ($order->file_type == 'stereo') {
+            $audio = $request->file('audio');
+        } elseif ($order->file_type == 'stems') {
+            $voice = $request->file('voice');
+            $prod = $request->file('prod');
+        } else {
+            $multi = $request->file('multi');
+        }
 
-        // return response()->json(['message' => $request->file('lefichier')]);
+        if ($order->support == 'strcd') {
+            $metadata = $request->file('metadata');
+        }
 
-        $file = $request->file('lefichier');
+        $audioFileName = 'track';
+        $voiceFileName = 'voice';
+        $prodFileName = 'prod';
+        $metadataFileName = 'metadata';
 
-        $fileName = 'musique-1';
+        $userEmail = $request->user()->email;
+        $projectName = $order->name;
 
-        // return response()->json(['message' => $fileName]);
-        $path = $file->storeAs('public/uploads', $fileName . '.' . $file->getClientOriginalExtension());
+        // count the number of direct child of the project user's directory
+//        $filesCount = count(Storage::folders($userEmail . '/' . $projectName)) + 1;
+        $filesCount = $this->countFolders($userEmail . '/' . $projectName) + 1;
 
-        // $order->file = $fileName;
-        // $order->save();
+        if ($order->file_type == 'stereo') {
+            $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName . '.' . $audio->getClientOriginalExtension());
+            if ($order->support == 'strcd') {
+                $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
+                $path = [
+                    'audio' => $audioPath,
+                    'metadata' => $metadataPath
+                ];
+            } else {
+                $path = [
+                    'audio' => $audioPath
+                ];
+            }
+        } elseif ($order->file_type == 'stems') {
+            $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName . '.' . $voice->getClientOriginalExtension());
+            $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName . '.' . $prod->getClientOriginalExtension());
+            if ($order->support == 'strcd') {
+                $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
+                $path = [
+                    'voice' => $voicePath,
+                    'prod' => $prodPath,
+                    'metadata' => $metadataPath
+                ];
+            } else {
+                $path = [
+                    'voice' => $voicePath,
+                    'prod' => $prodPath
+                ];
+            }
+        } else {
+            if ($order->support == 'strcd') {
+                $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
+                $path = [
+                    'multi' => '',
+                    'metadata' => $metadataPath
+                ];
+            } else {
+                $path = [
+                    'multi' => ''
+                ];
+            }
+        }
 
-        return response()->json(['message' => 'File uploaded successfully', 'path' => $path]);
+
+         return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
     }
 
     /**
@@ -85,10 +141,16 @@ class OrderController extends Controller
 
         $order->status = 2;
         $order->deadline = $request->deadline;
-        $order->date = now(); // Set the 'date' when QCM is completed
+        $order->date = now();
 
         $order->save();
 
         return response()->json(['message' => 'Order completed successfully', 'order' => $order]);
+    }
+
+    private function countFolders(string $directory): int
+    {
+        $directories = Storage::directories($directory);
+        return count($directories);
     }
 }

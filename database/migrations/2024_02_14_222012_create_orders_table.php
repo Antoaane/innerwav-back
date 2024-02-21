@@ -18,10 +18,11 @@ return new class extends Migration
             $table->string('project_type');
             $table->string('file_type');
             $table->string('support');
+            $table->integer('price')->default(0);
             $table->date('deadline');
             $table->string('status');
             $table->uuid('user_id');
-            $table->foreign('user_id')->references('user_id')->on('users'); // Clé étrangère faisant référence à users.id
+            $table->foreign('user_id')->references('user_id')->on('users');
             $table->uuid('order_id')->unique();
             $table->timestamps();
         });

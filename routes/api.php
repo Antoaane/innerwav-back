@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/safe-test', function (Request $request) {
         return response()->json(['message' => 'Ceci est une réponse de test pour les utilisateurs authentifiés']);
     });
+
+    Route::get('/user/orders', [UserController::class, 'listOrders']);
 
     Route::post('/order/start', [OrderController::class, 'start']);
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
