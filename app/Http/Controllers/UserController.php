@@ -3,17 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use \Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
-    public function listOrders(Request $request): JsonResponse
+    /**
+     * Display a listing of the orders for the authenticated user.
+     *
+     * @return \Illuminate\Http\Response
+    */
+
+    public function userInfos(Request $request)
     {
         $user = $request->user();
+
+        return response()->json($user);
+    }
+
+    public function ordersInfos(Request $request)
+    {
+        $user = $request->user();
+        
         $orders = $user->orders;
 
-
-
-        return response()->json(['orders' => $orders]);
+        return response()->json($orders);
     }
 }

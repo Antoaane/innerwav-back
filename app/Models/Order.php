@@ -20,6 +20,6 @@ class Order extends Model
     // Relation : Une commande peut avoir plusieurs retours
     public function feedbacks()
     {
-        return $this->hasMany(Feedback::class);
+        return $this->hasMany(Feedback::class, 'order_id', 'order_id');
     }
 }

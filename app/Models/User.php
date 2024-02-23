@@ -16,6 +16,6 @@ class User extends Authenticatable
     // Relation : Un utilisateur peut avoir plusieurs commandes
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Order::class, 'user_id', 'user_id');
     }
 }

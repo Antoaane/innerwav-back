@@ -35,7 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['message' => 'Ceci est une réponse de test pour les utilisateurs authentifiés']);
     });
 
-    Route::get('/user/orders', [UserController::class, 'listOrders']);
+    Route::get('/user/orders', [UserController::class, 'ordersInfos']);
+    Route::get('/user/infos', [UserController::class, 'userInfos']);
 
     Route::post('/order/start', [OrderController::class, 'start']);
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
