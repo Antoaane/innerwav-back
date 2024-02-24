@@ -81,8 +81,7 @@ class OrderController extends Controller
         $userEmail = $request->user()->email;
         $projectName = $order->name;
 
-        // count the number of direct child of the project user's directory
-//        $filesCount = count(Storage::folders($userEmail . '/' . $projectName)) + 1;
+        
         $filesCount = $this->countFolders($userEmail . '/' . $projectName) + 1;
 
         if ($order->file_type == 'stereo') {
@@ -128,8 +127,13 @@ class OrderController extends Controller
             }
         }
 
+        $isLast = boolval($request->input('isLast'))??"";
 
-         return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
+        if ($isLast) {
+            $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
+        }
+
+        return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
     }
 
     /**
@@ -152,5 +156,27 @@ class OrderController extends Controller
     {
         $directories = Storage::directories($directory);
         return count($directories);
+    }
+
+    private function zipDirectory(string $directory, string $zipFileName): string
+    {
+        $zip = new \ZipArchive();
+        $zipFileName = storage_path('app/' . $zipFileName);
+        // dd($zipFileName, $directory, Storage::allFiles($directory));
+        $zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        // dd($zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE), $zipFileName, $directory, Storage::allFiles($directory));
+
+        $files = Storage::allFiles($directory);
+
+        foreach ($files as $file) {
+            $relativePathInZipFile = substr($file, strlen($directory) + 1);
+            $fileContent = Storage::get($file);
+            $zip->addFromString($relativePathInZipFile, $fileContent);
+        }
+
+        $zip->close();
+
+        return $zipFileName;
     }
 }
