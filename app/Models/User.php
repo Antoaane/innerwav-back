@@ -13,9 +13,13 @@ class User extends Authenticatable
 
     protected $fillable = ['name', 'artist_name', 'email', 'phone', 'password', 'user_id'];
 
-    // Relation : Un utilisateur peut avoir plusieurs commandes
     public function orders()
     {
         return $this->hasMany(Order::class, 'user_id', 'user_id');
+    }
+
+    public function tracks()
+    {
+        return $this->hasMany(Track::class, 'user_id', 'user_id');
     }
 }

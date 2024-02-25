@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\Track;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
@@ -60,6 +61,10 @@ class OrderController extends Controller
     public function upload(Request $request, $orderId)
     {
         $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $track = new Track;
+        $track->user_name = $request->user()->name;
+
 
         if ($order->file_type == 'stereo') {
             $audio = $request->file('audio');
