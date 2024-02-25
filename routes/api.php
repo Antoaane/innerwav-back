@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\FeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,4 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
     Route::post('/order/upload/{orderId}/finish', [OrderController::class, 'uploadFinish']);
     Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
+
+    Route::post('/feedback/new', [FeedbackController::class, 'newFeedback']);
 });
