@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use ZipArchive;
 
 class OrderController extends Controller
 {
@@ -79,9 +80,8 @@ class OrderController extends Controller
         $metadataFileName = 'metadata';
 
         $userEmail = $request->user()->email;
-        $projectName = $order->name;
+        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
 
-        
         $filesCount = $this->countFolders($userEmail . '/' . $projectName) + 1;
 
         if ($order->file_type == 'stereo') {
@@ -127,13 +127,24 @@ class OrderController extends Controller
             }
         }
 
-        $isLast = boolval($request->input('isLast'))??"";
+        return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
+    }
 
-        if ($isLast) {
-            $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
+    public function uploadFinish(Request $request, $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $userEmail = $request->user()->email;
+        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
+
+        $zipFilePath = $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
+
+        $dirs = Storage::allDirectories($userEmail . '/' . $projectName);
+        foreach ($dirs as $dir) {
+            Storage::deleteDirectory($dir);
         }
 
-        return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
+        return response()->json(['message' => 'Order completed successfully', 'zip' => $zipFilePath]);
     }
 
     /**
@@ -160,14 +171,14 @@ class OrderController extends Controller
 
     private function zipDirectory(string $directory, string $zipFileName): string
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $zipFileName = storage_path('app/' . $zipFileName);
-        // dd($zipFileName, $directory, Storage::allFiles($directory));
-        $zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-        // dd($zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE), $zipFileName, $directory, Storage::allFiles($directory));
+        $zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         $files = Storage::allFiles($directory);
+
+//        dd($files);
 
         foreach ($files as $file) {
             $relativePathInZipFile = substr($file, strlen($directory) + 1);
