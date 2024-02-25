@@ -64,6 +64,13 @@ class OrderController extends Controller
 
         $track = new Track;
         $track->user_name = $request->user()->name;
+        $track->artists = $request->artists??"";
+        $track->name = $request->name??"";
+        $track->spec_ref = $request->spec_ref??"";
+        $track->order_id = $orderId;
+        $track->user_id = $request->user()->user_id;
+        $track->track_id = Str::uuid();
+        $track->save();
 
 
         if ($order->file_type == 'stereo') {
