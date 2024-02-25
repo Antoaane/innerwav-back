@@ -127,25 +127,36 @@ class OrderController extends Controller
             }
         }
 
-        return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount], 201);
-    }
+        if ($request->input('isLast')) {
+            $formatProjectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
 
-    public function uploadFinish(Request $request, $orderId)
-    {
-        $order = Order::where('order_id', $orderId)->firstOrFail();
+            $zipFilePath = $this->zipDirectory($userEmail . '/' . $formatProjectName, $userEmail . '/' . $formatProjectName . '/ressources.zip');
 
-        $userEmail = $request->user()->email;
-        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
-
-        $zipFilePath = $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
-
-        $dirs = Storage::allDirectories($userEmail . '/' . $projectName);
-        foreach ($dirs as $dir) {
-            Storage::deleteDirectory($dir);
+            $dirs = Storage::allDirectories($userEmail . '/' . $formatProjectName);
+            foreach ($dirs as $dir) {
+                Storage::deleteDirectory($dir);
+            }
         }
 
-        return response()->json(['message' => 'Order completed successfully', 'zip' => $zipFilePath]);
+        return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount, 'zip' => $zipFilePath??"no zip yet"], 201);
     }
+
+//    public function uploadFinish(Request $request, $orderId)
+//    {
+//        $order = Order::where('order_id', $orderId)->firstOrFail();
+//
+//        $userEmail = $request->user()->email;
+//        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
+//
+//        $zipFilePath = $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
+//
+//        $dirs = Storage::allDirectories($userEmail . '/' . $projectName);
+//        foreach ($dirs as $dir) {
+//            Storage::deleteDirectory($dir);
+//        }
+//
+//        return response()->json(['message' => 'Order completed successfully', 'zip' => $zipFilePath]);
+//    }
 
     /**
      * Complete the QCM and define 'status' and 'deadline'.
