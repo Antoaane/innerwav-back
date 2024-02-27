@@ -18,6 +18,6 @@ class Order extends Model
 
     public function feedbacks()
     {
-        return $this->hasMany(Feedback::class, 'order_id', 'order_id');
+        return $this->hasMany(Feedback::class);
     }
 }

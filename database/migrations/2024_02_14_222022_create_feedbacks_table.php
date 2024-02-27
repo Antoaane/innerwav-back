@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('feedbacks', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->text('client_message');
+            $table->text('client_message')->nullable();
             $table->text('seller_message')->nullable();
             $table->string('status');
             $table->string('folder_path');
