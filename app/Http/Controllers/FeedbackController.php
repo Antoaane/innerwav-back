@@ -16,11 +16,12 @@ class FeedbackController extends Controller
         $userEmail = $request->user()->email;
         $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
 
-//        $feedbacksCount = $this->countFeedbacks($orderId);
+        $feedbacksCount = $this->countFeedbacks($orderId);
 
         $feedbacks = new Feedback;
+        $feedbacks->date = now();
         $feedbacks->seller_message = $request->input('seller_message');
-        $feedbacks->folder_path = $userEmail . '/' . $projectName . '/feedback-';
+        $feedbacks->folder_path = $userEmail . '/' . $projectName . '/feedback-' . $feedbacksCount . '.zip';
         $feedbacks->status = 2;
         $feedbacks->order_id = $order->order_id;
         $feedbacks->feedback_id = Str::uuid();
@@ -34,7 +35,6 @@ class FeedbackController extends Controller
     private function countFeedbacks($orderId)
     {
         $feedbacks = Feedback::where('order_id', $orderId)->get();
-//        dd($feedbacks??"");
         return count($feedbacks);
     }
 }

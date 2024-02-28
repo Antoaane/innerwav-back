@@ -9,12 +9,9 @@ class Feedback extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['date', 'client_message', 'seller_message', 'status', 'folder_path', 'order_id', 'feedback_id'];
+    protected $table = 'feedbacks';
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    protected $fillable = ['date', 'client_message', 'seller_message', 'status', 'folder_path', 'order_id', 'feedback_id'];
 
     public function order()
     {
