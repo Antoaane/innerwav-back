@@ -27,9 +27,11 @@ class UserController extends Controller
 
         $orders = $user->orders;
 
-        $feedbacks = Feedback::where('order_id', $orders->order_id)->get();
+        foreach ($orders as $order) {
+            $feedbacks = Feedback::where('order_id', $order->order_id)->get();
 
-        $orders->feedbacks = $feedbacks;
+            $order->feedbacks = $feedbacks;
+        }
 
         return response()->json($orders);
     }

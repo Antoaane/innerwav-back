@@ -37,6 +37,21 @@ class FeedbackController extends Controller
         return response()->json(['message' => 'Feedback created and uploaded successfully', 'feedback' => $feedbacks, 'master' => $masterPath]);
     }
 
+    public function newFeedback(Request $request, $orderId)
+    {
+        $feedback = Feedback::where('order_id', $orderId)->firstOrFail();
+        
+        $validatedData = $request->validate([
+            'client_message' => 'required|string|max:255',
+        ]);
+
+        $feedback->client_message = $validatedData['client_message'];
+
+        $feedback->save();
+
+        return response()->json(['message' => 'Feedback updated successfully', 'feedback' => $feedback]);
+    }
+
     private function countFeedbacks($orderId)
     {
         $feedbacks = Feedback::where('order_id', $orderId)->get();

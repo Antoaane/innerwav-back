@@ -42,8 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order/start', [OrderController::class, 'start']);
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
     Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
-    Route::post('/order/upload/{orderId}/finish', [OrderController::class, 'uploadFinish']);
     Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
 
-    Route::post('/{orderId}/feedback/new', [FeedbackController::class, 'newVersion']);
+    Route::post('/{orderId}/version/new', [FeedbackController::class, 'newVersion']);
+    Route::patch('/{orderId}/feedback/new', [FeedbackController::class, 'newFeedback']);
 });
