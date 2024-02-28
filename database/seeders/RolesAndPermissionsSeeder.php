@@ -13,16 +13,17 @@ class RolesAndPermissionsSeeder extends Seeder
         // Réinitialise le cache des rôles et des permissions
         app()['cache']->forget('spatie.permission.cache');
 
-        // Créer des permissions
-        Permission::create(['name' => 'edit projects']);
-        Permission::create(['name' => 'delete projects']);
+        // Création de permissions de base
+        Permission::create(['name' => 'view any project']);
+        Permission::create(['name' => 'edit project']);
+        Permission::create(['name' => 'delete project']);
 
-        // Créer des rôles et assigner des permissions existantes
+        // Création du rôle 'super admin'
         $role = Role::create(['name' => 'super admin']);
-        $role->givePermissionTo(['edit projects', 'delete projects']);
 
-        $role = Role::create(['name' => 'project manager']);
-        $role->givePermissionTo('edit projects');
+        // Assignation des permissions au rôle 'super admin'
+        $permissions = Permission::all(); // Récupère toutes les permissions créées
+        $role->givePermissionTo($permissions);
     }
 }
 
