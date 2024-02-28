@@ -153,23 +153,6 @@ class OrderController extends Controller
         return response()->json(['message' => 'File uploaded successfully', 'path' => $path, 'folders' => $filesCount, 'zip' => $zipFilePath??"no zip yet"], 201);
     }
 
-//    public function uploadFinish(Request $request, $orderId)
-//    {
-//        $order = Order::where('order_id', $orderId)->firstOrFail();
-//
-//        $userEmail = $request->user()->email;
-//        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
-//
-//        $zipFilePath = $this->zipDirectory($userEmail . '/' . $projectName, $userEmail . '/' . $projectName . '/ressources.zip');
-//
-//        $dirs = Storage::allDirectories($userEmail . '/' . $projectName);
-//        foreach ($dirs as $dir) {
-//            Storage::deleteDirectory($dir);
-//        }
-//
-//        return response()->json(['message' => 'Order completed successfully', 'zip' => $zipFilePath]);
-//    }
-
     /**
      * Complete the QCM and define 'status' and 'deadline'.
      */
@@ -200,8 +183,6 @@ class OrderController extends Controller
         $zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         $files = Storage::allFiles($directory);
-
-//        dd($files);
 
         foreach ($files as $file) {
             $relativePathInZipFile = substr($file, strlen($directory) + 1);
