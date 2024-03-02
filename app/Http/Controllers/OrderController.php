@@ -72,7 +72,6 @@ class OrderController extends Controller
         $track->track_id = Str::uuid();
         $track->save();
 
-
         if ($order->file_type == 'stereo') {
             $audio = $request->file('audio');
         } elseif ($order->file_type == 'stems') {
@@ -85,6 +84,8 @@ class OrderController extends Controller
         if ($order->support == 'strcd') {
             $metadata = $request->file('metadata');
         }
+
+        
 
         $audioFileName = 'track';
         $voiceFileName = 'voice';
@@ -109,6 +110,8 @@ class OrderController extends Controller
                     'audio' => $audioPath
                 ];
             }
+
+            $this->calculBasePrice($order, $order->file_type);
         } elseif ($order->file_type == 'stems') {
             $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName . '.' . $voice->getClientOriginalExtension());
             $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName . '.' . $prod->getClientOriginalExtension());
@@ -125,15 +128,20 @@ class OrderController extends Controller
                     'prod' => $prodPath
                 ];
             }
+
+            $this->calculBasePrice($order, $order->file_type);
         } else {
             $multi = $request->file('multi');
             $paths = [];
 
             if (count($multi) == 1) {
                 $audio = $multi[0];
+
                 $audioFileName = 'audio.' . $audio->getClientOriginalExtension();
                 $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName, 'public');
                 $paths['audio'] = $audioPath;
+
+                $this->calculBasePrice($order, 'stereo');
 
             } elseif (count($multi) == 2) {
                 $voice = $multi[0];
@@ -147,6 +155,8 @@ class OrderController extends Controller
                 $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName, 'public');
                 $paths['prod'] = $prodPath;
 
+                $this->calculBasePrice($order, 'stems');
+
             } else {
                 // Plus de deux fichiers, on renvoie une erreur
                 return response()->json(['message' => 'You can only upload one or two files'], 400);
@@ -156,8 +166,6 @@ class OrderController extends Controller
             if ($order->support == 'strcd') {
                 $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
                 $path['metadata'] = $metadataPath;
-
-                dd($path);
             }
         }
 
@@ -215,5 +223,33 @@ class OrderController extends Controller
         $zip->close();
 
         return $zipFileName;
+    }
+
+    private function calculBasePrice($order, string $fileType)
+    {
+        if ($order->project_type == 'single') {
+            $amount = 40;
+        } elseif ($order->project_type == 'ep') {
+            $amount = 36;
+        } elseif ($order->project_type == 'album') {
+            $amount = 34;
+        }
+
+        if ($order->file_type == 'stems' || $fileType == 'stems') {
+            if ($order->support == 'strcd') {
+                $amount = $amount * 4;
+            } else {
+                $amount = $amount * 1.5;
+            }
+        } elseif ($order->file_type == 'stereo' || $fileType == 'stereo') {
+            if ($order->support == 'strcd') {
+                $amount = $amount * 3;
+            } else {
+                $amount = $amount;
+            }
+        }
+
+        $order = Order::where('order_id', $order->order_id)->firstOrFail();
+        $order->update(['price' => $order->price + $amount]);
     }
 }
