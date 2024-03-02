@@ -43,7 +43,7 @@ class OrderController extends Controller
         $validationRules = [
             'name' => 'required|string|max:255',
             'project_type' => 'required|in:single,ep,album',
-            'file_type' => 'required|in:stereo,stems,mixed',
+            'file_type' => 'required|in:stereo,stems,multi',
             'support' => 'required|in:str,strcd',
         ];
 
@@ -126,16 +126,38 @@ class OrderController extends Controller
                 ];
             }
         } else {
+            $multi = $request->file('multi');
+            $paths = [];
+
+            if (count($multi) == 1) {
+                $audio = $multi[0];
+                $audioFileName = 'audio.' . $audio->getClientOriginalExtension();
+                $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName, 'public');
+                $paths['audio'] = $audioPath;
+
+            } elseif (count($multi) == 2) {
+                $voice = $multi[0];
+                $prod = $multi[1];
+
+                $voiceFileName = 'voice.' . $voice->getClientOriginalExtension();
+                $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName, 'public');
+                $paths['voice'] = $voicePath;
+
+                $prodFileName = 'prod.' . $prod->getClientOriginalExtension();
+                $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName, 'public');
+                $paths['prod'] = $prodPath;
+
+            } else {
+                // Plus de deux fichiers, on renvoie une erreur
+                return response()->json(['message' => 'You can only upload one or two files'], 400);
+
+            }
+
             if ($order->support == 'strcd') {
                 $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
-                $path = [
-                    'multi' => '',
-                    'metadata' => $metadataPath
-                ];
-            } else {
-                $path = [
-                    'multi' => ''
-                ];
+                $path['metadata'] = $metadataPath;
+
+                dd($path);
             }
         }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -46,4 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/{orderId}/version/new', [FeedbackController::class, 'newVersion']);
     Route::patch('/{orderId}/feedback/new', [FeedbackController::class, 'newFeedback']);
+});
+
+Route::middleware(['auth:sanctum', 'role:super admin'])->group(function () {
+    Route::get('/superadmin/all', [AdminController::class, 'allData']);
+    Route::get('/superadmin/orders', [AdminController::class, 'allOrders']);
+    Route::get('/superadmin/users', [UserController::class, 'allUsers']);
 });

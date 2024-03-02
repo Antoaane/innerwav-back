@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Models\Track;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -28,6 +29,10 @@ class UserController extends Controller
         $orders = $user->orders;
 
         foreach ($orders as $order) {
+            $tracks = Track::where('order_id', $order->order_id)->get();
+
+            $order->tracks = $tracks;
+
             $feedbacks = Feedback::where('order_id', $order->order_id)->get();
 
             $order->feedbacks = $feedbacks;
