@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\FeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,4 +21,36 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/test', function (Request $request) {
+    return response()->json(['message' => 'Ceci est une réponse de test']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/safe-test', function (Request $request) {
+        return response()->json(['message' => 'Ceci est une réponse de test pour les utilisateurs authentifiés']);
+    });
+
+    Route::get('/user/orders', [UserController::class, 'ordersInfos']);
+    Route::get('/user/infos', [UserController::class, 'userInfos']);
+
+    Route::post('/order/start', [OrderController::class, 'start']);
+    Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
+    Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
+    Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
+
+    Route::post('/{orderId}/version/new', [FeedbackController::class, 'newVersion']);
+    Route::patch('/{orderId}/feedback/new', [FeedbackController::class, 'newFeedback']);
+});
+
+Route::middleware(['auth:sanctum', 'role:super admin'])->group(function () {
+    Route::get('/superadmin/all', [AdminController::class, 'allData']);
+    Route::get('/superadmin/orders', [AdminController::class, 'allOrders']);
+    Route::get('/superadmin/users', [UserController::class, 'allUsers']);
 });
