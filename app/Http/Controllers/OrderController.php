@@ -19,6 +19,7 @@ class OrderController extends Controller
     {
         $order = new Order;
         $order->name = 'Uncompleted order';
+        $order->global_ref = 'No global references';
         $order->date = now();
         $order->project_type = 'undefined';
         $order->file_type = 'undefined';
@@ -42,6 +43,7 @@ class OrderController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
+            'global_ref' => 'required|string',
             'project_type' => 'required|in:single,ep,album',
             'file_type' => 'required|in:stereo,stems,multi',
             'support' => 'required|in:str,strcd',
@@ -52,6 +54,10 @@ class OrderController extends Controller
         $validatedData = $request->validate($fieldsToValidate);
 
         $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        if ($order->support == 'strcd' && $request->hasFile('project_cover')) {
+            $request->input('project_cover')->storeAs($request->user()->email . '/' . $request->input('project_name'), 'cover.jpg');
+        }
 
         $order->update($validatedData);
 
