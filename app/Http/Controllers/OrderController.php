@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Track;
+use App\Models\Feedback;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
@@ -73,6 +74,13 @@ class OrderController extends Controller
         $track->artists = $request->artists??"";
         $track->name = $request->name??"";
         $track->spec_ref = $request->spec_ref??"";
+
+        if ($order->file_type == 'stems') {
+            $track->file_type = 'stems';
+        } elseif ($order->file_type == 'stereo'){
+            $track->file_type = 'stereo';
+        }
+
         $track->order_id = $orderId;
         $track->user_id = $request->user()->user_id;
         $track->track_id = Str::uuid();
@@ -143,6 +151,7 @@ class OrderController extends Controller
             if (count($multi) == 1) {
                 $audio = $multi[0];
 
+                $track->file_type = 'stereo';
                 $audioFileName = 'audio.' . $audio->getClientOriginalExtension();
                 $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName, 'public');
                 $paths['audio'] = $audioPath;
@@ -153,6 +162,7 @@ class OrderController extends Controller
                 $voice = $multi[0];
                 $prod = $multi[1];
 
+                $track->file_type = 'stems';
                 $voiceFileName = 'voice.' . $voice->getClientOriginalExtension();
                 $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName, 'public');
                 $paths['voice'] = $voicePath;
@@ -204,6 +214,23 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Order completed successfully', 'order' => $order]);
     }
+
+
+    public function orderInfos($orderId)
+    {
+        $order = Order::where('order_id', $orderId)->firstOrFail();
+
+        $tracks = Track::where('order_id', $orderId)->get();
+
+        $order->tracks = $tracks;
+
+        $feedBacks = Feedback::where('order_id', $orderId)->get();
+
+        $order->feedbacks = $feedBacks;
+
+        return response()->json(['order' => $order]);
+    }
+
 
     private function countFolders(string $directory): int
     {

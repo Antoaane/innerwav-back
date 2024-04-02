@@ -33,10 +33,6 @@ Route::get('/test', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/safe-test', function (Request $request) {
-        return response()->json(['message' => 'Ceci est une réponse de test pour les utilisateurs authentifiés']);
-    });
-
     Route::get('/user/orders', [UserController::class, 'ordersInfos']);
     Route::get('/user/infos', [UserController::class, 'userInfos']);
 
@@ -44,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
     Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
     Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
+    Route::get('/order/{orderId}', [OrderController::class, 'orderInfos']);
 
     Route::post('/{orderId}/version/new', [FeedbackController::class, 'newVersion']);
     Route::patch('/{orderId}/feedback/new', [FeedbackController::class, 'newFeedback']);

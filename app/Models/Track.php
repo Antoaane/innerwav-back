@@ -9,7 +9,7 @@ class Track extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_name', 'artists', 'name', 'spec_ref', 'order_id', 'user_id', 'track_id'];
+    protected $fillable = ['user_name', 'artists', 'name', 'spec_ref', 'file_type', 'order_id', 'user_id', 'track_id'];
 
     public function order()
     {
