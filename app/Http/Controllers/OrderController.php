@@ -145,12 +145,12 @@ class OrderController extends Controller
 
             $this->calculBasePrice($order, $order->file_type);
         } else {
-            $multi = $request->file('multi');
+            $audio = $request->file('audio');
+            $file1 = $request->file('file-1');
+            $file2 = $request->file('file-2');
             $paths = [];
 
-            if (count($multi) == 1) {
-                $audio = $multi[0];
-
+            if ($audio) {
                 $track->file_type = 'stereo';
                 $audioFileName = 'audio.' . $audio->getClientOriginalExtension();
                 $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName, 'public');
@@ -158,18 +158,18 @@ class OrderController extends Controller
 
                 $this->calculBasePrice($order, 'stereo');
 
-            } elseif (count($multi) == 2) {
-                $voice = $multi[0];
-                $prod = $multi[1];
+            } elseif ($stems1 && $stems2) {
+                $file1 = $multi[0];
+                $file2 = $multi[1];
 
                 $track->file_type = 'stems';
-                $voiceFileName = 'voice.' . $voice->getClientOriginalExtension();
-                $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName, 'public');
-                $paths['voice'] = $voicePath;
+                $File1Name = 'stems-1.' . $file1->getClientOriginalExtension();
+                $file1Path = $file1->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $File1Name, 'public');
+                $paths['stems-1'] = $file1Path;
 
-                $prodFileName = 'prod.' . $prod->getClientOriginalExtension();
-                $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName, 'public');
-                $paths['prod'] = $prodPath;
+                $File2Name = 'stems-2.' . $file2->getClientOriginalExtension();
+                $file2Path = $file2->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $File2Name, 'public');
+                $paths['stems-2'] = $file2Path;
 
                 $this->calculBasePrice($order, 'stems');
 
