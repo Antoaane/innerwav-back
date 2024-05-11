@@ -38,71 +38,55 @@ class OrderController extends Controller
      * Update the order at each QCM step.
      */
 
-    public function update(Request $request, $orderId)
-    {
-        $fieldsToUpdate = $request->input('fieldsToUpdate', []);
+    // public function update(Request $request, $orderId)
+    // {
+    //     $validationRules = $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'global_ref' => 'string',
+    //         'project_type' => 'required|in:single,ep,album',
+    //         'file_type' => 'required|in:lr,stems',
+    //         'support' => 'required|in:str,strcd'
+    //     ]);
 
-        $validationRules = [
-            'name' => 'required|string|max:255',
-            'global_ref' => 'required|string',
-            'project_type' => 'required|in:single,ep,album',
-            'file_type' => 'required|in:stereo,stems,multi',
-            'support' => 'required|in:str,strcd',
-        ];
+    //     $order = Order::where('order_id', $orderId)->firstOrFail();
 
-        $fieldsToValidate = array_intersect_key($validationRules, array_flip($fieldsToUpdate));
+    //     if ($order->support == 'strcd') {
+    //         $request->input('project_cover')->storeAs($request->user()->email . '/' . $request->input('project_name'), 'cover.jpg');
+    //     }
 
-        $validatedData = $request->validate($fieldsToValidate);
+    //     $order->update($validationRules);
 
-        $order = Order::where('order_id', $orderId)->firstOrFail();
+    //     return response()->json(['message' => 'Order updated successfully', 'order' => $order]);
+    // }
 
-        if ($order->support == 'strcd' && $request->hasFile('project_cover')) {
-            $request->input('project_cover')->storeAs($request->user()->email . '/' . $request->input('project_name'), 'cover.jpg');
-        }
-
-        $order->update($validatedData);
-
-        return response()->json(['message' => 'Order updated successfully', 'order' => $order]);
-    }
-
-    public function upload(Request $request, $orderId)
+    public function uploadTrack(Request $request, $orderId)
     {
         $order = Order::where('order_id', $orderId)->firstOrFail();
 
         $track = new Track;
         $track->user_name = $request->user()->name;
+        $track->spec_ref = $request->spec_ref??"";
+        $track->file_type = $request->file_type;
         $track->artists = $request->artists??"";
         $track->name = $request->name??"";
-        $track->spec_ref = $request->spec_ref??"";
-
-        if ($order->file_type == 'stems') {
-            $track->file_type = 'stems';
-        } elseif ($order->file_type == 'stereo'){
-            $track->file_type = 'stereo';
-        }
-
         $track->order_id = $orderId;
         $track->user_id = $request->user()->user_id;
         $track->track_id = Str::uuid();
         $track->save();
 
-        if ($order->file_type == 'stereo') {
-            $audio = $request->file('audio');
-        } elseif ($order->file_type == 'stems') {
-            $voice = $request->file('voice');
+        if ($track->file_type == 'lr') {
+            $lr = $request->file('lr');
+        } elseif ($track->file_type == 'stems') {
+            $main = $request->file('main');
             $prod = $request->file('prod');
-        } else {
-            $multi = $request->file('multi');
         }
 
         if ($order->support == 'strcd') {
             $metadata = $request->file('metadata');
         }
 
-
-
-        $audioFileName = 'track';
-        $voiceFileName = 'voice';
+        $lrFileName = 'lr';
+        $mainFileName = 'main';
         $prodFileName = 'prod';
         $metadataFileName = 'metadata';
 
@@ -111,78 +95,44 @@ class OrderController extends Controller
 
         $filesCount = $this->countFolders($userEmail . '/' . $projectName) + 1;
 
-        if ($order->file_type == 'stereo') {
-            $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName . '.' . $audio->getClientOriginalExtension());
+        if ($request->file_type == 'lr') {
+
             if ($order->support == 'strcd') {
+                $lrPath = $lr->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $lrFileName . '.' . $lr->getClientOriginalExtension());
                 $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
                 $path = [
-                    'audio' => $audioPath,
+                    'lr' => $lrPath,
                     'metadata' => $metadataPath
                 ];
             } else {
+                $lrPath = $lr->storeAs($userEmail . '/' . $projectName, 'track-' . $lrFileName . '-' . $filesCount . '.' . $lr->getClientOriginalExtension());
                 $path = [
-                    'audio' => $audioPath
+                    'lr' => $lrPath
                 ];
             }
 
-            $this->calculBasePrice($order, $order->file_type);
-        } elseif ($order->file_type == 'stems') {
-            $voicePath = $voice->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $voiceFileName . '.' . $voice->getClientOriginalExtension());
+            // $this->calculBasePrice($order, $track->file_type);
+
+        } elseif ($request->file_type == 'stems') {
+
+            $mainPath = $main->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $mainFileName . '.' . $main->getClientOriginalExtension());
             $prodPath = $prod->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $prodFileName . '.' . $prod->getClientOriginalExtension());
             if ($order->support == 'strcd') {
                 $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
                 $path = [
-                    'voice' => $voicePath,
+                    'main' => $mainPath,
                     'prod' => $prodPath,
                     'metadata' => $metadataPath
                 ];
             } else {
                 $path = [
-                    'voice' => $voicePath,
+                    'main' => $mainPath,
                     'prod' => $prodPath
                 ];
             }
 
-            $this->calculBasePrice($order, $order->file_type);
-        } else {
-            $audio = $request->file('audio');
-            $file1 = $request->file('file-1');
-            $file2 = $request->file('file-2');
-            $paths = [];
+            // $this->calculBasePrice($order, $track->file_type);
 
-            if ($audio) {
-                $track->file_type = 'stereo';
-                $audioFileName = 'audio.' . $audio->getClientOriginalExtension();
-                $audioPath = $audio->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $audioFileName, 'public');
-                $paths['audio'] = $audioPath;
-
-                $this->calculBasePrice($order, 'stereo');
-
-            } elseif ($stems1 && $stems2) {
-                $file1 = $multi[0];
-                $file2 = $multi[1];
-
-                $track->file_type = 'stems';
-                $File1Name = 'stems-1.' . $file1->getClientOriginalExtension();
-                $file1Path = $file1->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $File1Name, 'public');
-                $paths['stems-1'] = $file1Path;
-
-                $File2Name = 'stems-2.' . $file2->getClientOriginalExtension();
-                $file2Path = $file2->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $File2Name, 'public');
-                $paths['stems-2'] = $file2Path;
-
-                $this->calculBasePrice($order, 'stems');
-
-            } else {
-                // Plus de deux fichiers, on renvoie une erreur
-                return response()->json(['message' => 'You can only upload one or two files'], 400);
-
-            }
-
-            if ($order->support == 'strcd') {
-                $metadataPath = $metadata->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $metadataFileName . '.' . $metadata->getClientOriginalExtension());
-                $path['metadata'] = $metadataPath;
-            }
         }
 
         if ($request->input('isLast')) {
@@ -232,6 +182,54 @@ class OrderController extends Controller
     }
 
 
+
+
+
+
+
+
+
+
+
+
+    public function newOrder(Request $request) 
+    {
+        $order = new Order;
+
+        $validationRules = $request->validate([
+            'name' => 'required|string|max:255',
+            'global_ref' => 'string',
+            'project_type' => 'required|in:single,ep,album',
+            'support' => 'required|in:str,strcd'
+        ]);
+
+        $order->name = $validationRules['name'];
+        $order->global_ref = $validationRules['global_ref']??'No global references';
+        $order->date = now();
+        $order->project_type = $validationRules['project_type'];
+        $order->support = $validationRules['support'];
+        $order->order_id = Str::uuid();
+        $order->user_id = $request->user()->user_id;
+        $order->status = 0;
+        $order->deadline = now();
+        $order->save();
+
+        return response()->json(['order' => $order, 'user' => $order->user_id], 201);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private function countFolders(string $directory): int
     {
         $directories = Storage::directories($directory);
@@ -274,7 +272,7 @@ class OrderController extends Controller
             } else {
                 $amount = $amount * 1.5;
             }
-        } elseif ($order->file_type == 'stereo' || $fileType == 'stereo') {
+        } elseif ($order->file_type == 'lr' || $fileType == 'lr') {
             if ($order->support == 'strcd') {
                 $amount = $amount * 3;
             } else {

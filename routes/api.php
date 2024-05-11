@@ -36,9 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/orders', [UserController::class, 'ordersInfos']);
     Route::get('/user/infos', [UserController::class, 'userInfos']);
 
-    Route::post('/order/start', [OrderController::class, 'start']);
+    Route::post('/order/start', [OrderController::class, 'newOrder']);
     Route::patch('/order/update/{orderId}', [OrderController::class, 'update']);
-    Route::post('/order/upload/{orderId}', [OrderController::class, 'upload']);
+    Route::post('/order/upload/{orderId}', [OrderController::class, 'uploadTrack']);
     Route::patch('/order/complete/{orderId}', [OrderController::class, 'complete']);
     Route::get('/order/{orderId}', [OrderController::class, 'orderInfos']);
 

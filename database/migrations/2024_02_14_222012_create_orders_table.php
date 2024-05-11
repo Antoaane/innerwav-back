@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('global_ref');
             $table->date('date');
             $table->string('project_type');
-            $table->string('file_type');
             $table->string('support');
             $table->integer('price')->default(0);
             $table->date('deadline');
