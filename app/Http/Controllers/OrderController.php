@@ -135,7 +135,7 @@ class OrderController extends Controller
 
         }
 
-        if ($request->input('isLast')) {
+        if ($request->input('is_last')) {
             $formatProjectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
 
             $zipFilePath = $this->zipDirectory($userEmail . '/' . $formatProjectName, $userEmail . '/' . $formatProjectName . '/ressources.zip');
