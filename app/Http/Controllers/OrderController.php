@@ -20,13 +20,13 @@ class OrderController extends Controller
         $order = new Order;
 
         $validationRules = $request->validate([
-            'name' => 'required|string|max:255',
+            'project_name' => 'required|string|max:255',
             'global_ref' => 'string',
             'project_type' => 'required|in:single,ep,album',
             'support' => 'required|in:str,strcd'
         ]);
 
-        $order->name = $validationRules['name'];
+        $order->project_name = $validationRules['project_name'];
         $order->global_ref = $validationRules['global_ref']??'No global references';
         $order->date = now();
         $order->project_type = $validationRules['project_type'];
@@ -47,12 +47,19 @@ class OrderController extends Controller
     {
         $order = Order::where('order_id', $orderId)->firstOrFail();
 
+        $validationRules = $request->validate([
+            'file_type' => 'required|in:lr,stems',
+            'artists' => 'string|max:255',
+            'track_name' => 'string|max:255',
+            'spec_ref' => 'string'
+        ]);
+
         $track = new Track;
         $track->user_name = $request->user()->name;
-        $track->spec_ref = $request->spec_ref??"";
-        $track->file_type = $request->file_type;
-        $track->artists = $request->artists??"";
-        $track->name = $request->name??"";
+        $track->spec_ref = $validationRules['spec_ref']??'No specific references';
+        $track->file_type = $validationRules['file_type'];
+        $track->artists = $validationRules['artists']??"";
+        $track->track_name = $validationRules['track_name']??"";
         $track->order_id = $orderId;
         $track->user_id = $request->user()->user_id;
         $track->track_id = Str::uuid();
