@@ -20,7 +20,7 @@ class OrderController extends Controller
         $order = new Order;
 
         $validationRules = $request->validate([
-            'project_name' => 'required|string|max:255',
+            'project_name' => 'required|max:255',
             'global_ref' => 'string',
             'project_type' => 'required|in:single,ep,album',
             'support' => 'required|in:str,strcd'
@@ -56,15 +56,15 @@ class OrderController extends Controller
 
         $track = new Track;
         $track->user_name = $request->user()->name;
+
+        $track->track_name = $validationRules['track_name']??"";
+        $track->artists = $validationRules['artists']??"";
         $track->spec_ref = $validationRules['spec_ref']??'No specific references';
         $track->file_type = $validationRules['file_type'];
-        $track->artists = $validationRules['artists']??"";
-        $track->track_name = $validationRules['track_name']??"";
         $track->order_id = $orderId;
         $track->user_id = $request->user()->user_id;
         $track->track_id = Str::uuid();
         $track->save();
-
 
         $lrFileName = 'lr';
         $mainFileName = 'main';
@@ -72,7 +72,7 @@ class OrderController extends Controller
         $metadataFileName = 'metadata';
 
         $userEmail = $request->user()->email;
-        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
+        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->project_name)));
 
         $filesCount = $this->countElementsInFolder($userEmail . '/' . $projectName) + 1;
 
@@ -97,7 +97,7 @@ class OrderController extends Controller
                 $validationRules = $request->validate([
                     'lr' => 'required|file|mimes:mp3,wav|max:204800',
                     'artists' => 'required|string|max:255',
-                    'name' => 'required|string|max:255'
+                    'track_name' => 'required|string|max:255'
                 ]);
 
                 $lrPath = $validationRules['lr']->storeAs($userEmail . '/' . $projectName, 'track-' . $lrFileName . '-' . $filesCount . '.' . $validationRules['lr']->getClientOriginalExtension());
@@ -134,7 +134,7 @@ class OrderController extends Controller
                     'main' => 'required|file|mimes:mp3,wav|max:204800',
                     'prod' => 'required|file|mimes:mp3,wav|max:204800',
                     'artists' => 'required|string|max:255',
-                    'name' => 'required|string|max:255'
+                    'track_name' => 'required|string|max:255'
                 ]);
 
                 $mainPath = $validationRules['main']->storeAs($userEmail . '/' . $projectName . '/track-' . $filesCount, $mainFileName . '.' . $validationRules['main']->getClientOriginalExtension());
@@ -151,7 +151,7 @@ class OrderController extends Controller
         }
 
         if ($request->input('is_last')) {
-            $formatProjectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->name)));
+            $formatProjectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $order->project_name)));
 
             $zipFilePath = $this->zipDirectory($userEmail . '/' . $formatProjectName, $userEmail . '/' . $formatProjectName . '/ressources.zip');
 
