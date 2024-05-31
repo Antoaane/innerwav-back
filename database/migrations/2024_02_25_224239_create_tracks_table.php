@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('user_name');
             $table->string('artists')->nullable();
-            $table->string('name');
+            $table->string('track_name');
             $table->string('spec_ref')->nullable();
             $table->string('file_type');
             $table->uuid('order_id');
