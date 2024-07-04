@@ -20,11 +20,20 @@ class OrderController extends Controller
         $order = new Order;
 
         $validationRules = $request->validate([
+            'cover_img' => 'required|file|mimes:jpeg,jpg,png|max:10240', // 5MB
             'project_name' => 'required|max:255',
             'global_ref' => 'string',
             'project_type' => 'required|in:single,ep,album',
             'support' => 'required|in:str,strcd'
         ]);
+
+        $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $validationRules['project_name'])));
+
+        if ($request->hasFile('cover_img')) {
+            $coverPath = $validationRules['cover_img']->storeAs($request->user()->email . '/' . $projectName, 'cover.' . $validationRules['cover_img']->getClientOriginalExtension());
+        } else {
+            $coverPath = 'no cover';
+        }
 
         $order->project_name = $validationRules['project_name'];
         $order->global_ref = $validationRules['global_ref']??'No global references';
@@ -37,7 +46,7 @@ class OrderController extends Controller
         $order->deadline = now();
         $order->save();
 
-        return response()->json(['order' => $order, 'user' => $order->user_id], 201);
+        return response()->json(['order' => $order, 'cover-path' => $coverPath, 'user' => $order->user_id], 201);
     }
 
     /**
