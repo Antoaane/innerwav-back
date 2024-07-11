@@ -20,7 +20,7 @@ class OrderController extends Controller
         $order = new Order;
 
         $validationRules = $request->validate([
-            'cover_img' => 'required|file|mimes:jpeg,jpg,png|max:10240', // 5MB
+            'cover_img' => 'file|mimes:jpeg,jpg,png|max:10240', // 5MB
             'project_name' => 'required|max:255',
             'global_ref' => 'string',
             'project_type' => 'required|in:single,ep,album',
