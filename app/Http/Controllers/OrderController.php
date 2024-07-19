@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Track;
 use App\Models\Feedback;
+use App\Models\Prices;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
@@ -19,13 +20,22 @@ class OrderController extends Controller
     {
         $order = new Order;
 
-        $validationRules = $request->validate([
-            'cover_img' => 'file|mimes:jpeg,jpg,png|max:10240', // 5MB
-            'project_name' => 'required|max:255',
-            'global_ref' => 'string',
-            'project_type' => 'required|in:single,ep,album',
-            'support' => 'required|in:str,strcd'
-        ]);
+        if ($request->support == 'strcd') {
+            $validationRules = $request->validate([
+                'cover_img' => 'required|file|mimes:jpeg,jpg,png|max:10240', // 5MB
+                'project_name' => 'required|max:255',
+                'global_ref' => 'string',
+                'project_type' => 'required|in:single,ep,album',
+                'support' => 'required|in:str,strcd'
+            ]);
+        } elseif ($request->support == 'str') {
+            $validationRules = $request->validate([
+                'project_name' => 'required|max:255',
+                'global_ref' => 'string',
+                'project_type' => 'required|in:single,ep,album',
+                'support' => 'required|in:str,strcd'
+            ]);
+        }
 
         $projectName = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $validationRules['project_name'])));
 
@@ -116,7 +126,7 @@ class OrderController extends Controller
                 ];
             }
 
-            // $this->calculBasePrice($order, $track->file_type);
+            $this->calculBasePrice($order, $track->file_type);
 
         } elseif ($request->file_type == 'stems') {
 
@@ -155,7 +165,7 @@ class OrderController extends Controller
                 ];
             }
 
-            // $this->calculBasePrice($order, $track->file_type);
+            $this->calculBasePrice($order, $track->file_type);
 
         }
 
@@ -238,31 +248,38 @@ class OrderController extends Controller
 
 
     // NEED TO BE REWORKED
-    private function calculBasePrice($order, string $fileType)
+    public function calculBasePrice($order = null, string $fileType = null)
     {
-        if ($order->project_type == 'single') {
-            $amount = 40;
-        } elseif ($order->project_type == 'ep') {
-            $amount = 36;
-        } elseif ($order->project_type == 'album') {
-            $amount = 34;
+
+        // Récupérer toutes les lignes de la table prices
+        $prices = Price::all();
+
+        // Convertir la collection en tableau PHP
+        $pricesArray = $prices->toArray();
+
+        // Transformer le tableau en une structure imbriquée
+        $nestedArray = [];
+        foreach ($pricesArray as $price) {
+            $objectPath = json_decode(str_replace("'", '"', $price['object']), true);
+            $nestedArray = $this->setNestedValue($nestedArray, $objectPath, $price['price']);
         }
 
-        if ($order->file_type == 'stems' || $fileType == 'stems') {
-            if ($order->support == 'strcd') {
-                $amount = $amount * 4;
-            } else {
-                $amount = $amount * 1.5;
-            }
-        } elseif ($order->file_type == 'lr' || $fileType == 'lr') {
-            if ($order->support == 'strcd') {
-                $amount = $amount * 3;
-            } else {
-                $amount = $amount;
-            }
-        }
+        return $pricesArray;
 
-        $order = Order::where('order_id', $order->order_id)->firstOrFail();
-        $order->update(['price' => $order->price + $amount]);
+        // $order = Order::where('order_id', $order->order_id)->firstOrFail();
+        // $order->update(['price' => $order->price + $amount]);
+    }
+
+    private function setNestedValue(&$array, $path, $value)
+    {
+        $temp = &$array;
+        foreach ($path as $key) {
+            if (!isset($temp[$key])) {
+                $temp[$key] = [];
+            }
+            $temp = &$temp[$key];
+        }
+        $temp = $value;
+        return $array;
     }
 }
