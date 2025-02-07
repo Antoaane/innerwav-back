@@ -50,7 +50,6 @@ class OrderController extends Controller
         ];
 
         $fieldsToValidate = array_intersect_key($validationRules, array_flip($fieldsToUpdate));
-
         $validatedData = $request->validate($fieldsToValidate);
 
         $order = Order::where('order_id', $orderId)->firstOrFail();
@@ -60,7 +59,6 @@ class OrderController extends Controller
         }
 
         $order->update($validatedData);
-
         return response()->json(['message' => 'Order updated successfully', 'order' => $order]);
     }
 
@@ -90,8 +88,6 @@ class OrderController extends Controller
         if ($order->support == 'strcd') {
             $metadata = $request->file('metadata');
         }
-
-        
 
         $audioFileName = 'track';
         $voiceFileName = 'voice';
